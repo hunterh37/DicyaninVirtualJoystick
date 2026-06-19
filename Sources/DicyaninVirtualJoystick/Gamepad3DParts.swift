@@ -13,7 +13,11 @@
 
 import RealityKit
 import simd
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 public enum Gamepad3DParts {
 
@@ -65,7 +69,9 @@ public enum Gamepad3DParts {
         let grabRadius = headRadius * 1.6
         head.components.set(CollisionComponent(shapes: [.generateSphere(radius: grabRadius)]))
         head.components.set(InputTargetComponent())
-        head.components.set(HoverEffectComponent())
+        #if !os(macOS)
+        head.components.set(HoverEffectComponent())  // hover highlight: visionOS/iOS only
+        #endif
         head.components.set(Gamepad3DHeadComponent(pivot: pivot))
 
         pivot.addChild(head)
@@ -109,7 +115,9 @@ public enum Gamepad3DParts {
         // Easy-to-hit press target.
         cap.components.set(CollisionComponent(shapes: [.generateSphere(radius: radius * 1.5)]))
         cap.components.set(InputTargetComponent())
-        cap.components.set(HoverEffectComponent())
+        #if !os(macOS)
+        cap.components.set(HoverEffectComponent())  // hover highlight: visionOS/iOS only
+        #endif
         cap.components.set(Gamepad3DButtonComponent(action: action, slot: slot, restY: restY, pressDepth: 0.006))
 
         container.addChild(cap)

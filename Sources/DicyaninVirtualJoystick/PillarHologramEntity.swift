@@ -19,7 +19,11 @@
 
 import RealityKit
 import simd
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 public final class PillarHologramEntity: Entity {
 
@@ -248,7 +252,14 @@ public final class PillarHologramEntity: Entity {
 
     private static func brighten(_ color: UIColor, by t: CGFloat) -> UIColor {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        #if !canImport(UIKit) && canImport(AppKit)
+        // NSColor.getRed traps for catalog/named colors not in an RGB space, so
+        // convert into sRGB first (UIColor handles this implicitly).
+        let rgb = color.usingColorSpace(.sRGB) ?? color
+        rgb.getRed(&r, green: &g, blue: &b, alpha: &a)
+        #else
         color.getRed(&r, green: &g, blue: &b, alpha: &a)
+        #endif
         return UIColor(red: min(1, r + (1 - r) * t * 0.4),
                        green: min(1, g + (1 - g) * t * 0.4),
                        blue: min(1, b + (1 - b) * t * 0.4),

@@ -100,23 +100,28 @@ public final class Gamepad3DSystem: System {
 
             let active = magnitude > comp.deadzone
 
-            // Route each physical stick to the drone channel it should drive:
-            //   BLUE  (.left  side)  -> rotation (yaw) + height (throttle)  == the rightDirection channel
-            //   ORANGE(.right side)  -> position (pitch + roll)             == the leftDirection channel
+            // Route each physical stick to the drone channel it should drive.
+            // The consumer (DualThumbControlledComponent / InputRouter) defines:
+            //   leftDirection  channel -> height (throttle, y) + yaw (x)
+            //   rightDirection channel -> pitch (forward/back, y) + roll (strafe, x)
+            // So:
+            //   BLUE  (.left  side)  -> height + yaw     == the leftDirection channel
+            //   ORANGE(.right side)  -> pitch + roll     == the rightDirection channel
             // The y-negation belongs to the DESTINATION channel, not the physical
             // side: the leftDirection channel negates y, the rightDirection one
             // does not (matching InputRouter's (x,-y) vs (x,y) convention).
-            let drivesPosition = comp.side == .right            // orange -> position
-            let y = drivesPosition ? -vertical : vertical
+            let drivesPosition = comp.side == .right            // orange -> position (pitch/roll)
+            let y = drivesPosition ? vertical : -vertical
             let direction = active ? SIMD3<Float>(horizontal, y, 0) : .zero
             let reportedMag = active ? magnitude : 0
 
             if drivesPosition {
-                // leftDirection channel == position (pitch/roll)
-                leftDir = direction; leftMag = reportedMag; leftActive = active
-            } else {
-                // rightDirection channel == rotation (yaw) + height (throttle)
+                // rightDirection channel == position (pitch/roll). Orange must NOT
+                // touch height — it lives only on the leftDirection channel.
                 rightDir = direction; rightMag = reportedMag; rightActive = active
+            } else {
+                // leftDirection channel == height (throttle) + yaw
+                leftDir = direction; leftMag = reportedMag; leftActive = active
             }
         }
 

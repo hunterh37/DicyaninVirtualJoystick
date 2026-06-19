@@ -5,6 +5,15 @@ for RealityKit on visionOS (and iOS). It gives you two grabbable physics joystic
 — mounted on a flat game-pad body or a floor-standing arcade pillar — whose tilt is
 read out as normalized two-stick input you route into your own movement pipeline.
 
+## Preview
+
+<table>
+  <tr>
+    <td align="center" width="55%"><img src="Media/gamepad.png" alt="3D game-pad rig with two joysticks" width="460"><br><sub><b>Gamepad3DEntity</b> — flat hand-held pad</sub></td>
+    <td align="center" width="45%"><img src="Media/pillar.png" alt="Arcade pillar stand with joysticks, buttons, and CRT readout" height="460"><br><sub><b>GamepadPillarEntity</b> — arcade stand</sub></td>
+  </tr>
+</table>
+
 ## Features
 
 - **Two physics joysticks** with spring-joint behavior: each stick pivots about its

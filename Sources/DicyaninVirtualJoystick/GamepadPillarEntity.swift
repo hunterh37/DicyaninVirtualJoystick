@@ -15,7 +15,11 @@
 
 import RealityKit
 import simd
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 public final class GamepadPillarEntity: Entity {
 
@@ -100,7 +104,9 @@ public final class GamepadPillarEntity: Entity {
         // Only the base is grabbable: dragging it repositions the whole stand.
         foot.components.set(CollisionComponent(shapes: [.generateBox(width: 0.24, height: 0.05, depth: 0.24)]))
         foot.components.set(InputTargetComponent())
-        foot.components.set(HoverEffectComponent())
+        #if !os(macOS)
+        foot.components.set(HoverEffectComponent())  // hover highlight: visionOS/iOS only
+        #endif
         foot.components.set(GamepadPillarBaseComponent(root: self))
         addChild(foot)
 
