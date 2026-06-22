@@ -158,22 +158,23 @@ public final class Gamepad3DSystem: System {
 
         // Hand tracking lives on the main actor; the simulation update runs on the
         // main thread, so reading it here is safe.
-        MainActor.assumeIsolated {
-            let pinch = VirtualJoystickBridge.handPinchProvider()
-            let leftPinch = pinch?.left
-            let rightPinch = pinch?.right
+        // Only the pinch read is main-actor state; pull it out without capturing
+        // `self` so nothing non-Sendable crosses into the closure. The returned
+        // pinch struct is Sendable.
+        let pinch = MainActor.assumeIsolated { VirtualJoystickBridge.handPinchProvider() }
+        let leftPinch = pinch?.left
+        let rightPinch = pinch?.right
 
-            // Resolve each hand. Pass the other hand's owned pivot so two hands
-            // can't both fight over the same stick.
-            leftOwnedPivot = resolveHand(pinchPos: leftPinch,
-                                         owned: leftOwnedPivot,
-                                         claimedByOtherHand: rightOwnedPivot,
-                                         heads: heads)
-            rightOwnedPivot = resolveHand(pinchPos: rightPinch,
-                                          owned: rightOwnedPivot,
-                                          claimedByOtherHand: leftOwnedPivot,
-                                          heads: heads)
-        }
+        // Resolve each hand. Pass the other hand's owned pivot so two hands
+        // can't both fight over the same stick.
+        leftOwnedPivot = resolveHand(pinchPos: leftPinch,
+                                     owned: leftOwnedPivot,
+                                     claimedByOtherHand: rightOwnedPivot,
+                                     heads: heads)
+        rightOwnedPivot = resolveHand(pinchPos: rightPinch,
+                                      owned: rightOwnedPivot,
+                                      claimedByOtherHand: leftOwnedPivot,
+                                      heads: heads)
 #endif
     }
 
