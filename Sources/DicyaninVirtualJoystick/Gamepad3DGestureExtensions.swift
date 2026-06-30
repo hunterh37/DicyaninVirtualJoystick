@@ -29,24 +29,20 @@ public extension View {
 
 #if os(visionOS)
 public extension View {
-    /// On a real device, joystick grabbing is driven by hand tracking
-    /// (Gamepad3DSystem) so BOTH sticks can be grabbed at once. This SwiftUI
-    /// DragGesture stays active only in the Simulator, where there's no hand
-    /// tracking and the mouse can only ever drag one head at a time.
-    static var isSimulator: Bool {
-        #if targetEnvironment(simulator)
-        return true
-        #else
-        return false
-        #endif
-    }
-
+    /// The SwiftUI pinch-drag gesture drives the joystick heads on BOTH the
+    /// Simulator and a real device. A plain `DragGesture().targetedToEntity` is
+    /// resolved on device by a pinch-and-drag on the head (the same path that
+    /// drives the working crane-cab levers), so the rig is grabbable even when
+    /// the host never wires `VirtualJoystickBridge.handPinchProvider`. When that
+    /// provider IS wired, `Gamepad3DSystem` adds two-handed hand-tracking grabs
+    /// on top; the two paths coexist (one writes the grab state, the other reads
+    /// it) without fighting, since hand tracking only claims a stick while a hand
+    /// is actually pinching near it.
     private static var gamepad3DDragGesture: some Gesture {
         DragGesture()
             .targetedToEntity(where: .has(Gamepad3DHeadComponent.self))
             .onChanged { value in
-                guard isSimulator,
-                      let pivot = value.entity.components[Gamepad3DHeadComponent.self]?.pivot,
+                guard let pivot = value.entity.components[Gamepad3DHeadComponent.self]?.pivot,
                       var comp = pivot.components[Gamepad3DJoystickComponent.self] else { return }
 
                 // Hand position in scene space.
@@ -63,8 +59,7 @@ public extension View {
                 pivot.components.set(comp)
             }
             .onEnded { value in
-                guard isSimulator,
-                      let pivot = value.entity.components[Gamepad3DHeadComponent.self]?.pivot,
+                guard let pivot = value.entity.components[Gamepad3DHeadComponent.self]?.pivot,
                       var comp = pivot.components[Gamepad3DJoystickComponent.self] else { return }
 
                 // Release: let the spring snap it back to center.
