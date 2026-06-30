@@ -1,8 +1,8 @@
 # DicyaninVirtualJoystick
 
 A self-contained Swift package providing a world-anchored 3D virtual joystick rig
-for RealityKit on visionOS (and iOS). It gives you two grabbable physics joysticks
-— mounted on a flat game-pad body or a floor-standing arcade pillar — whose tilt is
+for RealityKit on visionOS (and iOS). It gives you two grabbable joysticks
+(mounted on a flat game-pad body or a floor-standing arcade pillar) whose tilt is
 read out as normalized two-stick input you route into your own movement pipeline.
 
 ## Preview
@@ -16,10 +16,11 @@ read out as normalized two-stick input you route into your own movement pipeline
 
 ## Features
 
-- **Two physics joysticks** with spring-joint behavior: each stick pivots about its
-  base, chases your hand while grabbed, and snaps back to center on release.
-- **Two-handed grabbing on device** via hand tracking, so both sticks can be driven
-  at once; falls back to a SwiftUI drag gesture in the Simulator.
+- **Two grabbable joysticks**: each stick pivots about its base, tilts the way you
+  push it, and snaps back to center on release.
+- **One input path everywhere**: a `targetedToEntity` pinch-drag drives the sticks
+  on both the Simulator and a real device (the same translation + expo curve the
+  crane-cab levers use). No hand-tracking wiring required.
 - **Two rig styles** out of the box: `Gamepad3DEntity` (flat hand-held pad) and
   `GamepadPillarEntity` (arcade stand with fire buttons, axis legends, a CRT readout,
   and a floating holographic minimap).
@@ -45,14 +46,6 @@ Wire the bridge once at launch:
 // Is the rig the active control scheme right now?
 VirtualJoystickBridge.isEnabled = { myControlScheme.usesJoystickRig }
 
-// Per-hand pinch positions for two-handed grabs (device only; nil in Simulator).
-VirtualJoystickBridge.handPinchProvider = {
-    VirtualJoystickHandPinch(
-        left:  myHands.isLeftPinching  ? myHands.leftPinchPosition  : nil,
-        right: myHands.isRightPinching ? myHands.rightPinchPosition : nil
-    )
-}
-
 // Receive the normalized stick output each frame and route it into your movement.
 VirtualJoystickBridge.output = { input in
     myController.apply(
@@ -73,7 +66,8 @@ let pillar = GamepadPillarEntity.make()   // or Gamepad3DEntity.make()
 rootEntity.addChild(pillar)
 ```
 
-On the immersive `RealityView`, attach the grab gesture (Simulator drag fallback):
+On the immersive `RealityView`, attach the grab gesture (drives the sticks on
+Simulator and device):
 
 ```swift
 RealityView { ... }
